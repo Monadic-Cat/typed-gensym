@@ -47,15 +47,13 @@ pub fn symgen(input: TokenStream) -> TokenStream {
             impl #name {
                 pub fn claim() -> Option<#name> {
                     use core::sync::atomic::{self, AtomicBool, Ordering};
-                    static mut CLAIMED: AtomicBool = AtomicBool::new(false);
-                    unsafe {
-                        if CLAIMED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
-                            Some(Self {
-                                _x: (),
-                            })
-                        } else {
-                            None
-                        }
+                    static CLAIMED: AtomicBool = AtomicBool::new(false);
+                    if CLAIMED.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+                        Some(Self {
+                            _x: (),
+                        })
+                    } else {
+                        None
                     }
                 }
                 #gensym
