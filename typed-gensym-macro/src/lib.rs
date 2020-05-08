@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
+use proc_macro_hack::proc_macro_hack;
 use quote::quote;
 use syn::{parse_macro_input, Ident};
-use proc_macro_hack::proc_macro_hack;
 
 /// Implementation of `gensym` for either kind of symgen.
 fn make_gensym() -> proc_macro2::TokenStream {
@@ -27,7 +27,10 @@ pub fn symgen(input: TokenStream) -> TokenStream {
     let name = parse_macro_input!(input as Ident);
     let gensym = make_gensym();
     let str_name = format!("{}", name);
-    let module_name = Ident::new(&format!("__typed_gensym_{}", name), proc_macro2::Span::call_site());
+    let module_name = Ident::new(
+        &format!("__typed_gensym_{}", name),
+        proc_macro2::Span::call_site(),
+    );
     let expanded = quote! {
         mod #module_name {
             use ::typed_gensym::__create_typed_symbol;
