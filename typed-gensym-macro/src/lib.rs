@@ -63,7 +63,9 @@ pub fn symgen(input: TokenStream) -> TokenStream {
             #[doc(hidden)]
             unsafe impl ::typed_gensym::UnsafeClone for #name {
                 unsafe fn clone(&self) -> Self {
-                    core::mem::transmute(())
+                    Self {
+                        _x: (),
+                    }
                 }
             }
         }
@@ -91,7 +93,9 @@ pub fn local_symgen(input: TokenStream) -> TokenStream {
         #[doc(hidden)]
         unsafe impl ::typed_gensym::UnsafeClone for #name {
             unsafe fn clone(&self) -> Self {
-                core::mem::transmute(())
+                Self {
+                    _x: (),
+                }
             }
         }
         #name { _x: () }
