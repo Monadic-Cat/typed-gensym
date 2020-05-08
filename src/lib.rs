@@ -6,6 +6,8 @@
 ///    println!("Symbol: {:?}", a.gensym());
 /// }
 /// ```
+/// If it turns out that block expression scopes become nameable,
+/// this becomes unsafe.
 pub use typed_gensym_decl::local_symgen;
 /// Defines a type tagged symbol generator.
 /// ```
