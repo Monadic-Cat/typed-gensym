@@ -18,7 +18,7 @@ pub use typed_gensym_decl::symgen;
 /// ```
 pub use typed_gensym_decl::local_symgen;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct TypedSymbol<T> {
     id: u64,
     tag: T,
