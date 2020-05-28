@@ -58,14 +58,6 @@ pub fn symgen(input: TokenStream) -> TokenStream {
                 }
                 #gensym
             }
-            #[doc(hidden)]
-            unsafe impl ::typed_gensym::UnsafeClone for #name {
-                unsafe fn clone(&self) -> Self {
-                    Self {
-                        _x: (),
-                    }
-                }
-            }
         }
         use #module_name::#name;
     };
@@ -87,14 +79,6 @@ pub fn local_symgen(input: TokenStream) -> TokenStream {
         }
         impl #name {
             #gensym
-        }
-        #[doc(hidden)]
-        unsafe impl ::typed_gensym::UnsafeClone for #name {
-            unsafe fn clone(&self) -> Self {
-                Self {
-                    _x: (),
-                }
-            }
         }
         #name { _x: () }
     }};

@@ -32,11 +32,11 @@ pub struct TypedSymbol<T> {
     tag: T,
 }
 
-impl<T: UnsafeClone> Clone for TypedSymbol<T> {
+impl<T> Clone for TypedSymbol<T> {
     fn clone(&self) -> Self {
         Self {
             id: self.id,
-            tag: unsafe { UnsafeClone::clone(&self.tag) },
+            tag: unsafe { core::mem::transmute_copy::<T, T>(&self.tag) },
         }
     }
 }
@@ -52,14 +52,6 @@ impl<T> Eq for TypedSymbol<T> {}
 #[doc(hidden)]
 pub unsafe fn __create_typed_symbol<T>(id: u64, tag: T) -> TypedSymbol<T> {
     TypedSymbol { id, tag }
-}
-/// This is also not part of the public API.
-/// I use it for copying the ZST tags in places that can't be reached
-/// through the public API.
-/// If misused, this can cause undefined behavior.
-#[doc(hidden)]
-pub unsafe trait UnsafeClone {
-    unsafe fn clone(&self) -> Self;
 }
 
 #[cfg(test)]
