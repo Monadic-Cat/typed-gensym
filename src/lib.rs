@@ -23,12 +23,9 @@ pub use typed_gensym_decl::symgen;
 #[derive(Debug)]
 pub struct TypedSymbol<T> {
     id: u64,
-    /// Note, this MUST ALWAYS be a zero sized type.
-    /// Given that the only way to create these symbols is to
-    /// go through the generated constructors,
-    /// there shouldn't be any way to violate that invariant.
-    /// But, if it is somehow violated, know that we're transmuting
-    /// a `()` into this whenever we make a copy of a symbol.
+    /// Note, this tag is unsafely copied whenever we copy a symbol.
+    /// This is because we use the same affine zero sized type
+    /// as generator and tag.
     tag: T,
 }
 
