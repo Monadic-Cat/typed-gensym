@@ -1,24 +1,5 @@
-/// Defines and returns an unnameable type tagged symbol generator.
-/// ```
-/// # use typed_gensym::local_symgen;
-/// fn main() {
-///    let mut a = local_symgen!(MyGen);
-///    println!("Symbol: {:?}", a.gensym());
-/// }
-/// ```
-/// If it turns out that block expression scopes become nameable,
-/// this becomes unsafe.
-pub use typed_gensym_decl::local_symgen;
-/// Defines a type tagged symbol generator.
-/// ```
-/// # use typed_gensym::symgen;
-/// symgen!(MyGen);
-/// fn main() {
-///    let mut a = MyGen::claim().unwrap();
-///    println!("Symbol: {:?}", a.gensym());
-/// }
-/// ```
-pub use typed_gensym_decl::symgen;
+
+
 
 #[derive(Debug)]
 pub struct TypedSymbol<T> {
@@ -49,6 +30,51 @@ impl<T> Eq for TypedSymbol<T> {}
 #[doc(hidden)]
 pub unsafe fn __create_typed_symbol<T>(id: u64, tag: T) -> TypedSymbol<T> {
     TypedSymbol { id, tag }
+}
+
+#[doc(hidden)]
+pub use typed_gensym_decl::symgen as __symgen__;
+
+/// Defines a type tagged symbol generator.
+/// ```
+/// # use typed_gensym::symgen;
+/// symgen!(MyGen);
+/// fn main() {
+///    let mut a = MyGen::claim().unwrap();
+///    println!("Symbol: {:?}", a.gensym());
+/// }
+/// ```
+#[macro_export]
+macro_rules! symgen {
+    ($($input:tt)*) => {
+        $crate::__symgen__! {
+            #![crate = $crate]
+            $($input)*
+        }
+    }
+}
+
+#[doc(hidden)]
+pub use typed_gensym_decl::local_symgen as __local_symgen__;
+
+/// Defines and returns an unnameable type tagged symbol generator.
+/// ```
+/// # use typed_gensym::local_symgen;
+/// fn main() {
+///    let mut a = local_symgen!(MyGen);
+///    println!("Symbol: {:?}", a.gensym());
+/// }
+/// ```
+/// If it turns out that block expression scopes become nameable,
+/// this becomes unsafe.
+#[macro_export]
+macro_rules! local_symgen {
+    ($($input:tt)*) => {
+        $crate::__local_symgen__! {
+            #![crate = $crate]
+            $($input)*
+        }
+    }
 }
 
 #[cfg(test)]

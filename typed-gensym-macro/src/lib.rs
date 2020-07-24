@@ -1,17 +1,17 @@
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 use quote::quote;
-use syn::{parse_macro_input, Ident};
+use syn::{Ident, Token, Path, bracketed, parse::{Nothing, ParseStream, Parser}};
 
 /// Implementation of `gensym` for either kind of symgen.
-fn make_gensym() -> proc_macro2::TokenStream {
+fn make_gensym(krate: Path) -> proc_macro2::TokenStream {
     let expanded = quote! {
-        pub fn gensym(&mut self) -> ::typed_gensym::TypedSymbol<Self> {
+        pub fn gensym(&mut self) -> #krate::TypedSymbol<Self> {
             static mut COUNTER: u64 = 0;
             // NOTE(unsafe) since there can only exist one instance of Self
             // ever, there is no way to produce a data race.
             unsafe {
-                let sym = ::typed_gensym::__create_typed_symbol(COUNTER, Self {
+                let sym = #krate::__create_typed_symbol(COUNTER, Self {
                     _x: (),
                 });
                 COUNTER += 1;
@@ -22,10 +22,27 @@ fn make_gensym() -> proc_macro2::TokenStream {
     proc_macro2::TokenStream::from(expanded)
 }
 
+fn parse_symgen_input(input: ParseStream<'_>) -> Result<(Path, Ident), syn::Error> {
+    Ok({
+        input.parse::<Token![#]>()?;
+        input.parse::<Token![!]>()?;
+        let content; bracketed!(content in input);
+        content.parse::<Token![crate]>()?;
+        content.parse::<Token![=]>()?;
+        let krate = content.parse::<Path>()?;
+        content.parse::<Nothing>()?;
+        let name = input.parse::<Ident>()?;
+        (krate, name)
+    })
+}
+
 #[proc_macro]
 pub fn symgen(input: TokenStream) -> TokenStream {
-    let name = parse_macro_input!(input as Ident);
-    let gensym = make_gensym();
+    let (krate, name) = match parse_symgen_input.parse(input) {
+        | Ok(it) => it,
+        | Err(err) => return err.to_compile_error().into(),
+    };
+    let gensym = make_gensym(krate.clone());
     let str_name = format!("{}", name);
     let module_name = Ident::new(
         &format!("__typed_gensym_{}", name),
@@ -33,7 +50,7 @@ pub fn symgen(input: TokenStream) -> TokenStream {
     );
     let expanded = quote! {
         mod #module_name {
-            use ::typed_gensym::__create_typed_symbol;
+            use #krate::__create_typed_symbol;
             pub struct #name {
                 // We want to be zero sized,
                 // but we also don't want the constructor to be public
@@ -65,8 +82,11 @@ pub fn symgen(input: TokenStream) -> TokenStream {
 }
 #[proc_macro_hack]
 pub fn local_symgen(input: TokenStream) -> TokenStream {
-    let name = parse_macro_input!(input as Ident);
-    let gensym = make_gensym();
+    let (krate, name) = match parse_symgen_input.parse(input) {
+        | Ok(it) => it,
+        | Err(err) => return err.to_compile_error().into(),
+    };
+    let gensym = make_gensym(krate);
     let str_name = format!("{}", name);
     let expanded = quote! {{
         struct #name {
